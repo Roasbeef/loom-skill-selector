@@ -1,0 +1,21 @@
+[extension]
+name = "skill_selector"
+version = "0.1.0"
+description = "Proactively select relevant skills with Jev; Loom loads the approved instructions."
+license = "MIT"
+tier = "jailed"
+
+[[hook]]
+event = "select_skills"
+entry = "skill_selector/hook"
+
+[net]
+hosts = ["api.typesafe.ai"]
+methods = ["POST"]
+max_response_bytes = 65536
+requests_per_call = 1
+
+[[net.secret]]
+env = "JEV_AUTHORIZATION"
+host = "api.typesafe.ai"
+header = "Authorization"

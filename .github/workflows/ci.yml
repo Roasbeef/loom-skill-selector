@@ -1,0 +1,44 @@
+name: CI
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          path: selector
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: Roasbeef/loom
+          ref: f894f2317099a958cd28fa698c74950b775c7cc8
+          path: loom
+          persist-credentials: false
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124
+        with:
+          otp-version: '29.0.5'
+          gleam-version: '1.18.1'
+          rebar3-version: '3.27.0'
+          version-type: strict
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
+        with:
+          go-version: '1.26.3'
+          cache: false
+      - name: Verify the pinned client and pure policy
+        run: |
+          selector/scripts/verify-jevelin.sh
+          selector/scripts/check.sh "$GITHUB_WORKSPACE/loom"
+      - name: Prepare the real jailed integration
+        working-directory: loom
+        run: .github/scripts/hex_retry.sh make sandbox codemode-seed
+      - name: Exercise selection through the provider boundary
+        run: |
+          selector/scripts/package.sh "$GITHUB_WORKSPACE/selector-source"
+          cd loom
+          LOOM_SKILL_SELECTOR_SOURCE="$GITHUB_WORKSPACE/selector-source" \
+            .github/scripts/hex_retry.sh bash scripts/test.sh client --match skill_selector_reaches_provider
