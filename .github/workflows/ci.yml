@@ -35,7 +35,7 @@ jobs:
           selector/scripts/check.sh "$GITHUB_WORKSPACE/loom"
       - name: Prepare the real jailed integration
         working-directory: loom
-        run: .github/scripts/hex_retry.sh make sandbox codemode-seed
+        run: .github/scripts/hex_retry.sh make binaries codemode-seed
       - name: Exercise selection through the provider boundary
         run: |
           selector/scripts/package.sh "$GITHUB_WORKSPACE/selector-source"
